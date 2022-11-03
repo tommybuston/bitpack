@@ -7,6 +7,16 @@ use std::convert::TryInto;
 /// * `n`: A signed integer value
 /// * `width`: the width of a bit field
 pub fn fitss(n: i64, width: u64) -> bool {
+    let mut x = n;
+    let mut bit_count = 1;
+
+    while x > 0 {
+        x = x / 2;
+        bit_count += 1;
+    }
+
+    if bit_count <= width {return true;}
+
     false
 }
 
@@ -16,6 +26,16 @@ pub fn fitss(n: i64, width: u64) -> bool {
 /// * `n`: An usigned integer value
 /// * `width`: the width of a bit field
 pub fn fitsu(n: u64, width: u64) -> bool {
+    let mut x = n;
+    let mut bit_count = 0;
+
+    while x > 0 {
+        x = x / 2;
+        bit_count += 1;
+    }
+
+    if bit_count <= width {return true;}
+
     false
 }
 
@@ -70,7 +90,6 @@ pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
 pub fn news(word: u64, width: u64, lsb: u64, value: i64) -> Option<u64> {
     Some(0)
 }
-
 
 #[cfg(test)]
 mod tests {
