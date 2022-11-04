@@ -8,12 +8,11 @@ use std::convert::TryInto;
 /// * `width`: the width of a bit field
 pub fn fitss(n: i64, width: u64) -> bool {
 
-    let n_unsigned = match n.try_into(){
-        Ok(n) => n,
-        Err(error) => panic!("{:?}" , error),
-    };
-    
-    n_unsigned_shifted = (n_unsigned<<(64 - width))>>(64-width);
+    if width == 0 {return false;}
+
+    let n_unsigned : u64 = n.try_into().unwrap();
+
+    let n_unsigned_shifted : u64 = (n_unsigned<<(64 - width))>>(64-width);
 
     if n_unsigned == n_unsigned_shifted { return true;}
 
@@ -26,8 +25,9 @@ pub fn fitss(n: i64, width: u64) -> bool {
 /// * `n`: An usigned integer value
 /// * `width`: the width of a bit field
 pub fn fitsu(n: u64, width: u64) -> bool {
+    if width == 0 {return false;}
         
-    n_shifted = (n<(64 - width))>>(64-width);
+    let n_shifted = (n<<(64 - width))>>(64-width);
 
     if n == n_shifted { return true;}
 
@@ -43,17 +43,12 @@ pub fn fitsu(n: u64, width: u64) -> bool {
 /// * `lsb`: the least-significant bit of the bit field
 pub fn gets(word: u64, width: u64, lsb: u64) -> i64 {
     //get extracted word
-    let word_unsigned = match word.try_into(){
-        Ok(n) => n,
-        Err(error) => panic!("{:?}" , error),
-    };
+    let extracted_word : u64 = (word<<64-width-lsb)>>(64 - width);
 
-    let extracted_word : u64;
-    
-    extracted_word = (word_unsigned<<64-width-lsb)>>(64 - width);   
+    let extracted_word_signed : i64 = extracted_word.try_into().unwrap();  
     //invariant, ask about the difference between the two
     
-    extracted_word;
+    extracted_word_signed
 }
 
 /// Retrieve an unsigned value from `word`, represented by `width` bits
@@ -67,11 +62,10 @@ pub fn getu(word: u64, width: u64, lsb: u64) -> u64 {
     
     let extracted_word: u64;
 
-    extracted_word = (word<<64-with-lsb)>>(64 - width);   
+    extracted_word = (word<<64-width-lsb)>>(64 - width);   
     //invariant
 
-
-    extracted_word;
+    extracted_word
 }
 
 /// Return a modified version of the unsigned `word`,
@@ -86,7 +80,7 @@ pub fn getu(word: u64, width: u64, lsb: u64) -> u64 {
 /// * `lsb`: the least-significant bit of the bit field
 /// * `value`: the unsigned value to place into that bit field
 pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
-    if !fitsu(word, width) {panic!()}
+    if !fitsu(value, width) {return None}
     //check that the word will not hang off the end!!!
 
     let right: u64;
@@ -95,7 +89,7 @@ pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
     right = (word<<(64-lsb))>>(64-lsb);   //invariant
     left = (word>>(width+lsb))<<(width+lsb);
 
-    let newu : Option<u64> = Some(left|word<<lsb|right);
+    let newu : Option<u64> = Some(left|value<<lsb|right);
     
     newu
 }
@@ -112,15 +106,67 @@ pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
 /// * `lsb`: the least-significant bit of the bit field
 /// * `value`: the signed value to place into that bit field
 pub fn news(word: u64, width: u64, lsb: u64, value: i64) -> Option<u64> {
-    if !fitss(word, width) {panic!()}
-    Some(0)
+    if !fitss(value, width) {return None}
+    
+    let right: u64;
+    let left: u64;
+
+    right = (word<<(64-lsb))>>(64-lsb);   //invariant
+    left = (word>>(width+lsb))<<(width+lsb);
+    let insert_value : u64 = (value<<lsb).try_into().unwrap();
+
+    let news : Option<u64> = Some(left|insert_value|right);
+
+    news
 }
+
+
 
 #[cfg(test)]
 mod tests {
+    use crate::bitpack::{fitsu,fitss,getu,gets,newu,news};
+
     #[test]
     fn it_works() {
         let result = 2 + 2;
         assert_eq!(result, 4);
     }
+    #[test]
+    fn fitu_zero() {
+        assert_eq!(fitsu(17, 0), false);
+    }
+    #[test]
+    fn fitu_23() {
+        assert_eq!(fitsu(23, 5), true);
+        assert_eq!(fitsu(23, 4), false);
+    }
+    #[test]
+    fn getu_23() {
+        assert_eq!(getu(23, 3, 2), 5 as u64);
+        assert_eq!(getu(23, 3, 3), 2 as u64);
+    }
+    #[test]
+    fn gets_23() {
+        assert_eq!(gets(23, 3, 2), 5 as i64);
+        assert_eq!(gets(23, 3, 3), 2 as i64);
+
+    }
+    #[test]
+    fn newu_23() {
+        assert_eq!(newu(23, 3, 3, 7).unwrap(), 63 as u64);
+        assert_eq!(newu(23, 3, 3, 6).unwrap(), 55 as u64);
+    }
+    #[test]
+    fn news_23() {
+        assert_eq!(newu(23, 3, 3, 0).unwrap(), 7 as u64);
+        assert_eq!(newu(23, 3, 2, 3).unwrap(), 15 as u64);
+    }
+
+
+
+
+
+
+
+
 }
