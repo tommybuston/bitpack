@@ -7,15 +7,15 @@ use std::convert::TryInto;
 /// * `n`: A signed integer value
 /// * `width`: the width of a bit field
 pub fn fitss(n: i64, width: u64) -> bool {
-    let mut x = n;
-    let mut bit_count = 1;
 
-    while x > 0 {
-        x = x / 2;
-        bit_count += 1;
-    }
+    let n_unsigned = match n.try_into(){
+        Ok(n) => n,
+        Err(error) => panic!("{:?}" , error),
+    };
+    
+    n_unsigned_shifted = (n_unsigned<<(64 - width))>>(64-width);
 
-    if bit_count <= width {return true;}
+    if n_unsigned == n_unsigned_shifted { return true;}
 
     false
 }
@@ -26,15 +26,10 @@ pub fn fitss(n: i64, width: u64) -> bool {
 /// * `n`: An usigned integer value
 /// * `width`: the width of a bit field
 pub fn fitsu(n: u64, width: u64) -> bool {
-    let mut x = n;
-    let mut bit_count = 0;
+        
+    n_shifted = (n<(64 - width))>>(64-width);
 
-    while x > 0 {
-        x = x / 2;
-        bit_count += 1;
-    }
-
-    if bit_count <= width {return true;}
+    if n == n_shifted { return true;}
 
     false
 }
@@ -48,12 +43,15 @@ pub fn fitsu(n: u64, width: u64) -> bool {
 /// * `lsb`: the least-significant bit of the bit field
 pub fn gets(word: u64, width: u64, lsb: u64) -> i64 {
     //get extracted word
+    let word_unsigned = match word.try_into(){
+        Ok(n) => n,
+        Err(error) => panic!("{:?}" , error),
+    };
 
     let extracted_word : u64;
     
-    extracted_word = (word>>lsb)<<(64 - lsb - width);   //invariant, ask about the difference between the two
-
-    if !fitss(extracted_word, width) {panic!()}
+    extracted_word = (word_unsigned<<64-width-lsb)>>(64 - width);   
+    //invariant, ask about the difference between the two
     
     extracted_word;
 }
@@ -69,9 +67,9 @@ pub fn getu(word: u64, width: u64, lsb: u64) -> u64 {
     
     let extracted_word: u64;
 
-    extracted_word = (word>>lsb)<<(64 - lsb - width);   //invariant
+    extracted_word = (word<<64-with-lsb)>>(64 - width);   
+    //invariant
 
-    if !fitsu(extracted_word, width) {panic!()}
 
     extracted_word;
 }
@@ -88,15 +86,16 @@ pub fn getu(word: u64, width: u64, lsb: u64) -> u64 {
 /// * `lsb`: the least-significant bit of the bit field
 /// * `value`: the unsigned value to place into that bit field
 pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
+    if !fitsu(word, width) {panic!()}
+    //check that the word will not hang off the end!!!
+
     let right: u64;
     let left: u64;
 
-    right = word<<(width+lsb);   //invariant
-    left = word>>(64-lsb)
+    right = (word<<(64-lsb))>>(64-lsb);   //invariant
+    left = (word>>(width+lsb))<<(width+lsb);
 
-    if !fitsu(extracted_word, width) {return None}
-
-    let newu : Option<u64> = Some(left|word|right);
+    let newu : Option<u64> = Some(left|word<<lsb|right);
     
     newu
 }
@@ -113,6 +112,7 @@ pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
 /// * `lsb`: the least-significant bit of the bit field
 /// * `value`: the signed value to place into that bit field
 pub fn news(word: u64, width: u64, lsb: u64, value: i64) -> Option<u64> {
+    if !fitss(word, width) {panic!()}
     Some(0)
 }
 
