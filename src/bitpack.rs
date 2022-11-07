@@ -42,6 +42,8 @@ pub fn fitsu(n: u64, width: u64) -> bool {
 /// * `width`: the width of a bit field
 /// * `lsb`: the least-significant bit of the bit field
 pub fn gets(word: u64, width: u64, lsb: u64) -> i64 {
+    //checked error
+    if width > 64 || width + lsb > 64 {panic!();}
     //get extracted word
     let extracted_word : u64 = (word<<64-width-lsb)>>(64 - width);
 
@@ -59,6 +61,8 @@ pub fn gets(word: u64, width: u64, lsb: u64) -> i64 {
 /// * `width`: the width of a bit field
 /// * `lsb`: the least-significant bit of the bit field
 pub fn getu(word: u64, width: u64, lsb: u64) -> u64 {
+    //checked error
+    if width > 64 || width + lsb > 64 {panic!();}
     
     let extracted_word: u64;
 
@@ -80,6 +84,9 @@ pub fn getu(word: u64, width: u64, lsb: u64) -> u64 {
 /// * `lsb`: the least-significant bit of the bit field
 /// * `value`: the unsigned value to place into that bit field
 pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
+    //checked error
+    if width > 64 || width + lsb > 64 {panic!();}
+
     if !fitsu(value, width) {return None}
     //check that the word will not hang off the end!!!
 
@@ -106,6 +113,9 @@ pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
 /// * `lsb`: the least-significant bit of the bit field
 /// * `value`: the signed value to place into that bit field
 pub fn news(word: u64, width: u64, lsb: u64, value: i64) -> Option<u64> {
+    //checked error
+    if width > 64 || width + lsb > 64 {panic!();}
+
     if !fitss(value, width) {return None}
     
     let right: u64;
@@ -141,6 +151,11 @@ mod tests {
         assert_eq!(fitsu(23, 4), false);
     }
     #[test]
+    fn fitss_23() {
+        assert_eq!(fitss(23, 5), true);
+        assert_eq!(fitss(23, 4), false);
+    }
+    #[test]
     fn getu_23() {
         assert_eq!(getu(23, 3, 2), 5 as u64);
         assert_eq!(getu(23, 3, 3), 2 as u64);
@@ -158,15 +173,8 @@ mod tests {
     }
     #[test]
     fn news_23() {
-        assert_eq!(newu(23, 3, 3, 0).unwrap(), 7 as u64);
-        assert_eq!(newu(23, 3, 2, 3).unwrap(), 15 as u64);
+        assert_eq!(news(23, 3, 3, 0).unwrap(), 7 as u64);
+        assert_eq!(news(23, 3, 2, 3).unwrap(), 15 as u64);
     }
-
-
-
-
-
-
-
 
 }
