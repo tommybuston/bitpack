@@ -10,11 +10,9 @@ pub fn fitss(n: i64, width: u64) -> bool {
 
     if width == 0 {return false;}
 
-    let n_unsigned : u64 = n.try_into().unwrap();
+    let n_shifted : i64 = (n<<(64 - width))>>(64-width);
 
-    let n_unsigned_shifted : u64 = (n_unsigned<<(64 - width))>>(64-width);
-
-    if n_unsigned == n_unsigned_shifted { return true;}
+    if n == n_shifted { return true;}
 
     false
 }
@@ -45,9 +43,11 @@ pub fn gets(word: u64, width: u64, lsb: u64) -> i64 {
     //checked error
     if width > 64 || width + lsb > 64 {panic!();}
     //get extracted word
-    let extracted_word : u64 = (word<<64-width-lsb)>>(64 - width);
+    let extracted_word = (word<<(64-width-lsb))>>(64 - width);
 
-    let extracted_word_signed : i64 = extracted_word.try_into().unwrap();  
+    let mut extracted_word_signed : i64 = extracted_word.try_into().unwrap();  
+
+    extracted_word_signed = (extracted_word_signed<<(64-width))>>(64-width);
     //invariant, ask about the difference between the two
     
     extracted_word_signed
@@ -120,12 +120,21 @@ pub fn news(word: u64, width: u64, lsb: u64, value: i64) -> Option<u64> {
     
     let right: u64;
     let left: u64;
+    let mut middle: u64;
 
-    right = (word<<(64-lsb))>>(64-lsb);   //invariant
+    right = (word<<(64-lsb))>>(64-lsb);
     left = (word>>(width+lsb))<<(width+lsb);
-    let insert_value : u64 = (value<<lsb).try_into().unwrap();
 
-    let news : Option<u64> = Some(left|insert_value|right);
+    if value < 0 {
+        middle = (!(value<<(64-width))).try_into().unwrap();
+        middle = (!middle)>>(64-width-lsb);
+
+    }
+    else {
+        middle = (value<<lsb).try_into().unwrap();
+    }
+
+    let news : Option<u64> = Some(left|middle|right);
 
     news
 }
@@ -152,8 +161,8 @@ mod tests {
     }
     #[test]
     fn fitss_23() {
-        assert_eq!(fitss(23, 5), true);
-        assert_eq!(fitss(23, 4), false);
+        assert_eq!(fitss(23, 6), true);
+        assert_eq!(fitss(23, 5), false);
     }
     #[test]
     fn getu_23() {
@@ -162,7 +171,7 @@ mod tests {
     }
     #[test]
     fn gets_23() {
-        assert_eq!(gets(23, 3, 2), 5 as i64);
+        assert_eq!(gets(23, 3, 2), -3 as i64);
         assert_eq!(gets(23, 3, 3), 2 as i64);
 
     }
@@ -176,5 +185,10 @@ mod tests {
         assert_eq!(news(23, 3, 3, 0).unwrap(), 7 as u64);
         assert_eq!(news(23, 3, 2, 3).unwrap(), 15 as u64);
     }
+    #[test]
+    fn news_neg3() {
+        assert_eq!(news(23, 4, 2, -3).unwrap(), 55 as u64);
+    }
+
 
 }
