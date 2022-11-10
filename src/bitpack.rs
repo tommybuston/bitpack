@@ -92,9 +92,8 @@ pub fn newu(word: u64, width: u64, lsb: u64, value: u64) -> Option<u64> {
 
     let right: u64;
     let left: u64;
-
-    right = (word<<(64-lsb))>>(64-lsb);   //invariant
-    left = (word>>(width+lsb))<<(width+lsb);
+    if lsb == 0 { right = 0; } else { right = (word<<(64-lsb))>>(64-lsb); } //invariant
+    if width+lsb == 64 { left = 0; } else { left = (word>>(width+lsb))<<(width+lsb);}
 
     let newu : Option<u64> = Some(left|value<<lsb|right);
     
@@ -122,8 +121,8 @@ pub fn news(word: u64, width: u64, lsb: u64, value: i64) -> Option<u64> {
     let left: u64;
     let mut middle: u64;
 
-    right = (word<<(64-lsb))>>(64-lsb);
-    left = (word>>(width+lsb))<<(width+lsb);
+    if lsb == 0 { right = 0; } else { right = (word<<(64-lsb))>>(64-lsb); }
+    if width+lsb == 64 { left = 0; } else { left = (word>>(width+lsb))<<(width+lsb);}
 
     if value < 0 {
         middle = (!(value<<(64-width))).try_into().unwrap();
